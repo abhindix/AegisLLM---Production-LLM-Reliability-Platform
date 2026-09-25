@@ -2,6 +2,25 @@ apiVersion: v1
 kind: Namespace
 metadata: {name: aegisllm}
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-auth
+  namespace: aegisllm
+type: Opaque
+stringData:
+  POSTGRES_PASSWORD: change-me-aegis-postgres-password
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aegisllm-api-secrets
+  namespace: aegisllm
+type: Opaque
+stringData:
+  DATABASE_URL: ******postgres:5432/aegis
+  AEGIS_API_KEY: change-me-aegis-api-key
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -28,7 +47,10 @@ spec:
         - name: POSTGRES_USER
           value: aegis
         - name: POSTGRES_PASSWORD
-          value: aegis
+          valueFrom:
+            secretKeyRef:
+              name: postgres-auth
+              key: POSTGRES_PASSWORD
         volumeMounts:
         - name: pgdata
           mountPath: /var/lib/postgresql/data
@@ -120,14 +142,23 @@ spec:
         command: ["sh", "-c", "until nc -z redis 6379; do echo waiting for redis; sleep 2; done"]
       containers:
       - name: api
-        image: aegisllm-production-platform-api:latest
+        image: aegisllm-production-platform-api:1.0.0
         imagePullPolicy: IfNotPresent
         ports: [{containerPort: 8080}]
         env:
-        - {name: DATABASE_URL, value: postgresql+psycopg://aegis:aegis@postgres:5432/aegis}
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: aegisllm-api-secrets
+              key: DATABASE_URL
         - {name: REDIS_URL, value: redis://redis:6379/0}
         - {name: KAFKA_BOOTSTRAP, value: kafka:9092}
         - {name: MODEL_BACKEND, value: mock}
+        - name: AEGIS_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: aegisllm-api-secrets
+              key: AEGIS_API_KEY
         - {name: OTEL_EXPORTER_OTLP_ENDPOINT, value: http://jaeger:4317}
         - {name: OTEL_SERVICE_NAME, value: aegisllm-gateway}
         readinessProbe: {httpGet: {path: /health/ready, port: 8080}, initialDelaySeconds: 10, periodSeconds: 10}

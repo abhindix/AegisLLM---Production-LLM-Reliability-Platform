@@ -1,3 +1,4 @@
+import os
 from locust import HttpUser, task, between
 class AegisUser(HttpUser):
     wait_time=between(.05,.2)

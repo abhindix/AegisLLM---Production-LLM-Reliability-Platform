@@ -1,6 +1,6 @@
 image:
   repository: aegisllm-production-platform-api
-  tag: latest
+  tag: "1.0.0"
   pullPolicy: IfNotPresent
 
 replicaCount: 2
@@ -11,10 +11,12 @@ service:
 
 env:
   MODEL_BACKEND: mock
-  DATABASE_URL: postgresql+psycopg://aegis:aegis@postgres:5432/aegis
   REDIS_URL: redis://redis:6379/0
   KAFKA_BOOTSTRAP: kafka:9092
 
 resources:
   requests: {cpu: 100m, memory: 256Mi}
   limits: {cpu: '1', memory: 1Gi}
+secrets:
+  databaseUrl: ******postgres:5432/aegis
+  apiKey: change-me-aegis-api-key

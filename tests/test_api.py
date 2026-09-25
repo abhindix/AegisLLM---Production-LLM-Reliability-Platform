@@ -81,6 +81,33 @@ def test_model_registration_uses_sql_bind_names(monkeypatch):
     assert set(captured['params']) == {'n', 'v', 'b', 'q'}
 
 
+def test_protected_endpoint_requires_api_key(monkeypatch):
+    original_key = main.API_KEY
+    try:
+        main.API_KEY = 'test-key'
+        with TestClient(main.app) as client:
+            response = client.post('/incidents/analyze', json={'symptoms': ['latency spike']})
+        assert response.status_code == 401
+    finally:
+        main.API_KEY = original_key
+
+
+def test_protected_endpoint_accepts_valid_api_key(monkeypatch):
+    original_key = main.API_KEY
+    try:
+        main.API_KEY = 'test-key'
+        with TestClient(main.app) as client:
+            response = client.post(
+                '/incidents/analyze',
+                json={'symptoms': ['latency spike']},
+                headers={'Authorization': '******'},
+            )
+        assert response.status_code == 200
+        assert response.json()['state'] == 'RECOMMENDATION'
+    finally:
+        main.API_KEY = original_key
+
+
 def test_credit_workflow_smoke(monkeypatch):
     class FakeCursor:
         def execute(self, sql, params=None):

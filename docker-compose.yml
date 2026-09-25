@@ -2,9 +2,9 @@ services:
   postgres:
     image: postgres:17-alpine
     environment:
-      POSTGRES_DB: aegis
-      POSTGRES_USER: aegis
-      POSTGRES_PASSWORD: aegis
+      POSTGRES_DB: ${POSTGRES_DB:-aegis}
+      POSTGRES_USER: ${POSTGRES_USER:-aegis}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -60,13 +60,14 @@ services:
     ports:
       - "18080:8080"
     environment:
-      DATABASE_URL: postgresql+psycopg://aegis:aegis@postgres:5432/aegis
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-aegis}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-aegis}
       REDIS_URL: redis://redis:6379/0
       KAFKA_BOOTSTRAP: kafka:9092
       MODEL_BACKEND: ${MODEL_BACKEND:-lmstudio}
       VLLM_URL: ${VLLM_URL:-http://host.docker.internal:1234}
       LMSTUDIO_URL: ${LMSTUDIO_URL:-http://host.docker.internal:1234}
       LMSTUDIO_MODEL: ${LMSTUDIO_MODEL:-openai/gpt-oss-20b}
+      AEGIS_API_KEY: ${AEGIS_API_KEY:?set AEGIS_API_KEY in .env}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
       OTEL_SERVICE_NAME: aegisllm-gateway
     depends_on:
@@ -93,6 +94,9 @@ services:
     image: grafana/grafana:12.2.0
     ports:
       - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-aegisadmin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set GRAFANA_ADMIN_PASSWORD in .env}
     volumes:
       - grafanadata:/var/lib/grafana
       - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro

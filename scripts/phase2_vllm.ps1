@@ -3,6 +3,10 @@ $ErrorActionPreference = "Stop"
 $projectRoot = "C:\Users\abhin\Desktop\AI-books\app=creation\research\aegisllm-production-platform"
 Set-Location $projectRoot
 
+$baseUrl = if ($env:AEGIS_BASE_URL) { $env:AEGIS_BASE_URL } else { "http://localhost:18080" }
+$apiKey = if ($env:AEGIS_API_KEY) { $env:AEGIS_API_KEY } else { "change-me-aegis-api-key" }
+$authHeaders = @{ Authorization = "******" }
+
 $env:HUGGING_FACE_HUB_TOKEN = "your_token_here"
 $env:MODEL_BACKEND = "vllm"
 
@@ -15,7 +19,7 @@ docker compose up -d --force-recreate api
 Write-Host "==> Waiting for app health..."
 for ($i = 0; $i -lt 30; $i++) {
     try {
-        $resp = Invoke-WebRequest -Uri "http://localhost:8080/health/ready" -Method Get -UseBasicParsing
+        $resp = Invoke-WebRequest -Uri "$baseUrl/health/ready" -Method Get -UseBasicParsing
         if ($resp.StatusCode -eq 200) { break }
     }
     catch {
@@ -25,7 +29,7 @@ for ($i = 0; $i -lt 30; $i++) {
 
 Write-Host "==> Sending request through the gateway..."
 $body = '{"model":"mock-model","messages":[{"role":"user","content":"Explain KV cache in one sentence."}],"max_tokens":32}'
-$resp = Invoke-WebRequest -Uri "http://localhost:8080/v1/chat/completions" -Method Post -ContentType "application/json" -Body $body -UseBasicParsing
+$resp = Invoke-WebRequest -Uri "$baseUrl/v1/chat/completions" -Method Post -ContentType "application/json" -Headers $authHeaders -Body $body -UseBasicParsing
 $resp.Content
 
 Write-Host "==> vLLM health check..."

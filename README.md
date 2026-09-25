@@ -11,26 +11,29 @@ Prerequisites: Docker Desktop with the Linux engine running and Docker Compose v
 
 ```bash
 cp .env.example .env
+# review the placeholder dev secrets in .env before sharing the stack
 docker compose up --build -d
 ```
 
 Wait for healthy containers, then:
 
 ```bash
-curl http://localhost:8080/health/ready
+curl http://localhost:18080/health/ready
 bash scripts/smoke_test.sh
 ```
 
 Open:
-- API: http://localhost:8080/docs
+- API: http://localhost:18080/docs
 - Prometheus: http://localhost:9090
-- Grafana: http://localhost:3000 (admin/admin)
+- Grafana: http://localhost:3000 (aegisadmin / value from GRAFANA_ADMIN_PASSWORD)
 - Jaeger: http://localhost:16686
+
+Protected endpoints require `Authorization: ****** Health, metrics, and the demo landing pages stay open for local checks.
 
 ## Demo the lifecycle
 
 ```bash
-bash scripts/demo_canary.sh
+AEGIS_API_KEY=${AEGIS_API_KEY:-change-me-aegis-api-key} bash scripts/demo_canary.sh
 ```
 
 The first candidate passes the quality/latency gate and receives 5% canary traffic. The second intentionally fails and is recorded as a rollback.
@@ -80,10 +83,10 @@ The module creates an EKS cluster, ECR repository and S3 artifact bucket. Do **n
 ```bash
 # Python load test
 pip install locust
-locust -f benchmarks/locustfile.py --host http://localhost:8080
+AEGIS_API_KEY=${AEGIS_API_KEY:-change-me-aegis-api-key} locust -f benchmarks/locustfile.py --host http://localhost:18080
 
 # k6
-k6 run benchmarks/k6-smoke.js
+AEGIS_API_KEY=${AEGIS_API_KEY:-change-me-aegis-api-key} k6 run benchmarks/k6-smoke.js
 ```
 
 Record p50/p95/p99 latency, throughput, error rate, TTFT/TPOT for vLLM, token throughput, recovery time, lost requests, failover time, maximum sustainable throughput and cost per million tokens. Do not claim production numbers until measured.

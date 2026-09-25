@@ -3,6 +3,10 @@ $ErrorActionPreference = "Stop"
 $projectRoot = "C:\Users\abhin\Desktop\AI-books\app=creation\research\aegisllm-production-platform"
 Set-Location $projectRoot
 
+$baseUrl = if ($env:AEGIS_BASE_URL) { $env:AEGIS_BASE_URL } else { "http://localhost:18080" }
+$apiKey = if ($env:AEGIS_API_KEY) { $env:AEGIS_API_KEY } else { "change-me-aegis-api-key" }
+$authHeaders = @{ Authorization = "******" }
+
 Write-Host "==> Starting Docker Compose stack..."
 docker compose down
 docker compose up --build -d
@@ -11,7 +15,7 @@ Write-Host "==> Waiting for app health..."
 $health = $null
 for ($i = 0; $i -lt 30; $i++) {
     try {
-        $health = Invoke-WebRequest -Uri "http://localhost:8080/health/ready" -Method Get -UseBasicParsing
+        $health = Invoke-WebRequest -Uri "$baseUrl/health/ready" -Method Get -UseBasicParsing
         if ($health.StatusCode -eq 200) { break }
     }
     catch {
@@ -27,11 +31,11 @@ Write-Host "==> Health check passed"
 $health.Content
 
 Write-Host "==> Sending chat completion request..."
-$resp = Invoke-WebRequest -Uri "http://localhost:8080/v1/chat/completions" -Method Post -ContentType "application/json" -Body '{"model":"mock-model","messages":[{"role":"user","content":"Explain KV cache in one sentence."}],"max_tokens":32}' -UseBasicParsing
+$resp = Invoke-WebRequest -Uri "$baseUrl/v1/chat/completions" -Method Post -ContentType "application/json" -Headers $authHeaders -Body '{"model":"mock-model","messages":[{"role":"user","content":"Explain KV cache in one sentence."}],"max_tokens":32}' -UseBasicParsing
 $resp.Content
 
 Write-Host "==> Prometheus metrics check..."
-$metrics = Invoke-WebRequest -Uri "http://localhost:8080/metrics" -UseBasicParsing
+$metrics = Invoke-WebRequest -Uri "$baseUrl/metrics" -UseBasicParsing
 if ($metrics.StatusCode -ne 200) { throw "Metrics endpoint not responding" }
 Write-Host "Metrics endpoint OK"
 
