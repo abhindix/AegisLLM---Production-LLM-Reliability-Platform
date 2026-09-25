@@ -8,7 +8,7 @@ $apiKey = $env:AEGIS_API_KEY
 if (-not $apiKey) { throw "Set AEGIS_API_KEY before running this script." }
 $authHeaders = @{ Authorization = ("Bearer " + $apiKey) }
 
-$env:HUGGING_FACE_HUB_TOKEN = "your_token_here"
+if (-not $env:HUGGING_FACE_HUB_TOKEN) { throw "Set HUGGING_FACE_HUB_TOKEN before running this script." }
 $env:MODEL_BACKEND = "vllm"
 
 Write-Host "==> Starting vLLM GPU profile..."

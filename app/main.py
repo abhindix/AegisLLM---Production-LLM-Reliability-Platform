@@ -87,6 +87,7 @@ def _configured_api_key() -> str:
 
 @app.middleware('http')
 async def require_api_key(request: Request, call_next):
+    """Keep health/docs/demo pages and Prometheus metrics public; require AEGIS_API_KEY everywhere else."""
     if _is_public_path(request.url.path):
         return await call_next(request)
     api_key = _configured_api_key()

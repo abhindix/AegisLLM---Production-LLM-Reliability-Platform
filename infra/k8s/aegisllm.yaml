@@ -123,7 +123,7 @@ spec:
         command: ["sh", "-c", "until nc -z redis 6379; do echo waiting for redis; sleep 2; done"]
       containers:
       - name: api
-        image: aegisllm-production-platform-api:1.0.0
+        image: aegisllm-production-platform-api:latest
         imagePullPolicy: IfNotPresent
         ports: [{containerPort: 8080}]
         env:
