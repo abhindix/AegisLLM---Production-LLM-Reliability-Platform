@@ -85,6 +85,8 @@ def test_protected_endpoint_requires_api_key(monkeypatch):
     original_key = main.API_KEY
     try:
         main.API_KEY = 'test-key'
+        monkeypatch.setattr(main, 'init_db', lambda: None)
+        monkeypatch.setattr(main, 'KafkaProducer', None)
         with TestClient(main.app) as client:
             response = client.post('/incidents/analyze', json={'symptoms': ['latency spike']})
         assert response.status_code == 401
@@ -96,11 +98,13 @@ def test_protected_endpoint_accepts_valid_api_key(monkeypatch):
     original_key = main.API_KEY
     try:
         main.API_KEY = 'test-key'
+        monkeypatch.setattr(main, 'init_db', lambda: None)
+        monkeypatch.setattr(main, 'KafkaProducer', None)
         with TestClient(main.app) as client:
             response = client.post(
                 '/incidents/analyze',
                 json={'symptoms': ['latency spike']},
-                headers={'Authorization': '******'},
+                headers={'Authorization': 'Bearer ' + main.API_KEY},
             )
         assert response.status_code == 200
         assert response.json()['state'] == 'RECOMMENDATION'

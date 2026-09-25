@@ -5,7 +5,7 @@ Set-Location $projectRoot
 
 $baseUrl = if ($env:AEGIS_BASE_URL) { $env:AEGIS_BASE_URL } else { "http://localhost:18080" }
 $apiKey = if ($env:AEGIS_API_KEY) { $env:AEGIS_API_KEY } else { "change-me-aegis-api-key" }
-$authHeaders = @{ Authorization = "******" }
+$authHeaders = @{ Authorization = ("Bearer " + $apiKey) }
 
 $env:HUGGING_FACE_HUB_TOKEN = "your_token_here"
 $env:MODEL_BACKEND = "vllm"
