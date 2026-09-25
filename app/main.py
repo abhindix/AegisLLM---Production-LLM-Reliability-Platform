@@ -1,9 +1,9 @@
-import json, os, time, uuid
+import json, os, secrets, time, uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 try:
@@ -42,6 +42,8 @@ CANARY = Counter('aegis_canary_decisions_total','Canary decisions',['decision'])
 
 OTEL_EXPORTER_OTLP_ENDPOINT = os.getenv('OTEL_EXPORTER_OTLP_ENDPOINT', 'jaeger:4317')
 OTEL_SERVICE_NAME = os.getenv('OTEL_SERVICE_NAME', 'aegisllm-gateway')
+# /metrics stays public so Prometheus can scrape the API without a separate secret bootstrap step.
+PUBLIC_PATHS = {'/', '/docs', '/openapi.json', '/redoc', '/health/live', '/health/ready', '/investor', '/investor/summary', '/metrics'}
 
 app = FastAPI(title='AegisLLM Gateway', version=APP_VERSION)
 if trace and TracerProvider:
@@ -63,6 +65,40 @@ if FastAPIInstrumentor:
 rdb = redis.from_url(REDIS_URL, decode_responses=True)
 producer = None
 SEMANTIC_TREE_INDEX: list[dict[str, Any]] = []
+
+
+def _is_public_path(path: str) -> bool:
+    return path in PUBLIC_PATHS or path.startswith('/docs/') or path.startswith('/redoc/')
+
+
+def _extract_bearer_token(authorization: str | None) -> str | None:
+    if not authorization:
+        return None
+    scheme, _, token = authorization.partition(' ')
+    token = token.strip()
+    if scheme.lower() != 'bearer' or not token:
+        return None
+    return token
+
+
+def _configured_api_key() -> str:
+    return os.getenv('AEGIS_API_KEY', '').strip()
+
+
+@app.middleware('http')
+async def require_api_key(request: Request, call_next):
+    """Keep health/docs/demo pages and Prometheus metrics public; require AEGIS_API_KEY everywhere else."""
+    if _is_public_path(request.url.path):
+        return await call_next(request)
+    api_key = _configured_api_key()
+    if not api_key:
+        return JSONResponse(status_code=503, content={'detail': 'Protected endpoints require AEGIS_API_KEY configuration'})
+
+    token = _extract_bearer_token(request.headers.get('Authorization'))
+    if not token or not secrets.compare_digest(token, api_key):
+        return JSONResponse(status_code=401, content={'detail': 'Unauthorized'})
+
+    return await call_next(request)
 
 class Message(BaseModel):
     role: str

@@ -27,7 +27,10 @@ spec:
             - name: POSTGRES_USER
               value: aegis
             - name: POSTGRES_PASSWORD
-              value: aegis
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-auth
+                  key: POSTGRES_PASSWORD
           ports:
             - containerPort: 5432
           volumeMounts:
