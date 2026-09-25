@@ -1,0 +1,20 @@
+image:
+  repository: aegisllm-production-platform-api
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+service:
+  type: ClusterIP
+  port: 80
+
+env:
+  MODEL_BACKEND: mock
+  DATABASE_URL: postgresql+psycopg://aegis:aegis@postgres:5432/aegis
+  REDIS_URL: redis://redis:6379/0
+  KAFKA_BOOTSTRAP: kafka:9092
+
+resources:
+  requests: {cpu: 100m, memory: 256Mi}
+  limits: {cpu: '1', memory: 1Gi}

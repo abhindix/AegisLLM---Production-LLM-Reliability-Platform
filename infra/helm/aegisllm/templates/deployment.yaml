@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "aegisllm.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector: {matchLabels: {app: {{ include "aegisllm.name" . }}}}
+  template:
+    metadata: {labels: {app: {{ include "aegisllm.name" . }}}}
+    spec:
+      containers:
+      - name: api
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
+        ports: [{containerPort: 8080}]
+        env:
+        - {name: MODEL_BACKEND, value: "{{ .Values.env.MODEL_BACKEND }}"}
+        - {name: DATABASE_URL, value: "{{ .Values.env.DATABASE_URL }}"}
+        - {name: REDIS_URL, value: "{{ .Values.env.REDIS_URL }}"}
+        - {name: KAFKA_BOOTSTRAP, value: "{{ .Values.env.KAFKA_BOOTSTRAP }}"}
+        readinessProbe: {httpGet: {path: /health/ready, port: 8080}, initialDelaySeconds: 10, periodSeconds: 10}
+        livenessProbe: {httpGet: {path: /health/live, port: 8080}, initialDelaySeconds: 15, periodSeconds: 20}
+        resources: {{- toYaml .Values.resources | nindent 10 }}

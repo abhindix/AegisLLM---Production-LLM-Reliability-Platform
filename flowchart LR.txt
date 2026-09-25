@@ -1,0 +1,61 @@
+flowchart LR
+    User[Bank / Fintech User] --> API[AegisLLM Gateway API]
+    API --> Model[Model Router / Model Registry]
+    Model --> Mock[Mock Model]
+    Model --> VLLM[vLLM / Local LLM]
+    Model --> LM[LM Studio / Private Model]
+
+    API --> DB[(PostgreSQL)]
+    API --> Redis[(Redis Cache)]
+    API --> Kafka[(Kafka Event Stream)]
+    API --> Prom[Prometheus]
+    Prom --> Grafana[Grafana Dashboard]
+
+    API --> OTel[OpenTelemetry]
+    OTel --> Jaeger[Jaeger Traces]
+
+    API --> Canary[Canary / Quality Gate]
+    Canary --> Eval[Evaluation + Promotion / Rollback]
+    Eval --> Incident[Incident Analysis / Approval Flow]
+
+    subgraph K8s[Docker Desktop Kubernetes / Cluster]
+      API
+      Model
+      DB
+      Redis
+      Kafka
+      Canary
+      Incident
+    end
+
+
+sequenceDiagram
+    participant C as Credit App / Frontend
+    participant G as AegisLLM Gateway
+    participant M as Model Router / Registry
+    participant K as Kafka
+    participant R as Risk Engine
+    participant F as Fraud Service
+    participant A as Approval / Decisioning
+    participant DB as PostgreSQL
+    participant Obs as Prometheus / Grafana / Jaeger
+
+    C->>G: Submit loan application
+    G->>DB: Store application metadata
+    G->>M: Route to credit-risk model
+    M->>M: Load approved model version
+    M-->>G: Risk / scoring result
+    G->>K: Publish credit.application.received
+    G->>K: Publish credit.risk.scored
+    K->>R: Consume credit.application.received
+    R->>DB: Save credit score and risk factors
+    R->>K: Publish credit.risk.scored
+    K->>F: Consume credit.risk.scored
+    F->>DB: Save fraud signal / anomaly checks
+    F->>K: Publish fraud.review.required or fraud.clean
+    K->>A: Consume final risk signals
+    A->>DB: Save approval / rejection decision
+    A->>K: Publish credit.decision.final
+    G-->>C: Return risk summary / recommendation
+    G->>Obs: Emit metrics + traces
+    DB->>Obs: Audit events and model registry history

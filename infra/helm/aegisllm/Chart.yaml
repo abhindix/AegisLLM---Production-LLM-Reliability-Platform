@@ -1,0 +1,5 @@
+apiVersion: v2
+name: aegisllm
+description: AegisLLM production-style inference gateway
+version: 0.1.0
+appVersion: '1.0.0'

@@ -1,0 +1,33 @@
+Example POC scope
+Build this as a Phase 1 banking app on top of the current platform:
+
+Application intake
+Risk scoring using mock or local LLM
+Fraud signal check
+Decision response
+Kafka event publication
+Postgres audit storage
+Dashboard in Grafana
+This is enough to demonstrate:
+
+controlled AI deployment
+real financial workflow
+governance and observability
+Best final recommendation
+Build:
+
+"Banking Credit Intelligence Platform"
+with these layers:
+
+API gateway
+credit decision engine
+model registry
+event-driven workflows
+audit and observability dashboard
+That is the strongest app to sit on top of the architecture you already have.
+
+If you want, I can next generate:
+
+the exact FastAPI routes for this credit app,
+the Kafka event payloads,
+and the Postgres schema for the credit workflow.
