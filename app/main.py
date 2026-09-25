@@ -83,8 +83,10 @@ def _extract_bearer_token(authorization: str | None) -> str | None:
 
 @app.middleware('http')
 async def require_api_key(request: Request, call_next):
-    if not API_KEY or _is_public_path(request.url.path):
+    if _is_public_path(request.url.path):
         return await call_next(request)
+    if not API_KEY:
+        return JSONResponse(status_code=503, content={'detail': 'Protected endpoints require AEGIS_API_KEY configuration'})
 
     token = _extract_bearer_token(request.headers.get('Authorization'))
     if not token or not secrets.compare_digest(token, API_KEY):

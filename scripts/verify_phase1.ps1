@@ -4,7 +4,8 @@ $projectRoot = "C:\Users\abhin\Desktop\AI-books\app=creation\research\aegisllm-p
 Set-Location $projectRoot
 
 $baseUrl = if ($env:AEGIS_BASE_URL) { $env:AEGIS_BASE_URL } else { "http://localhost:18080" }
-$apiKey = if ($env:AEGIS_API_KEY) { $env:AEGIS_API_KEY } else { "change-me-aegis-api-key" }
+$apiKey = $env:AEGIS_API_KEY
+if (-not $apiKey) { throw "Set AEGIS_API_KEY before running this script." }
 $authHeaders = @{ Authorization = ("Bearer " + $apiKey) }
 
 Write-Host "==> Starting Docker Compose stack..."

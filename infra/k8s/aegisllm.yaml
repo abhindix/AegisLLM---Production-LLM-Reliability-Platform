@@ -18,7 +18,7 @@ metadata:
   namespace: aegisllm
 type: Opaque
 stringData:
-  DATABASE_URL: ******postgres:5432/aegis
+  DATABASE_URL: postgresql+psycopg://aegis:change-me-aegis-postgres-password@postgres:5432/aegis
   AEGIS_API_KEY: change-me-aegis-api-key
 ---
 apiVersion: apps/v1
