@@ -3,15 +3,6 @@ kind: Namespace
 metadata:
   name: aegisllm
 ---
-apiVersion: v1
-kind: Secret
-metadata:
-  name: postgres-auth
-  namespace: aegisllm
-type: Opaque
-stringData:
-  POSTGRES_PASSWORD: change-me-aegis-postgres-password
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:

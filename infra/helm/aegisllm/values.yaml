@@ -18,5 +18,5 @@ resources:
   requests: {cpu: 100m, memory: 256Mi}
   limits: {cpu: '1', memory: 1Gi}
 secrets:
-  databaseUrl: "postgresql+psycopg://aegis:change-me-aegis-postgres-password@postgres:5432/aegis"
-  apiKey: change-me-aegis-api-key
+  databaseUrl: ""
+  apiKey: ""
