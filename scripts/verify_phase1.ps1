@@ -36,7 +36,7 @@ $resp = Invoke-WebRequest -Uri "$baseUrl/v1/chat/completions" -Method Post -Cont
 $resp.Content
 
 Write-Host "==> Prometheus metrics check..."
-$metrics = Invoke-WebRequest -Uri "$baseUrl/metrics" -Headers $authHeaders -UseBasicParsing
+$metrics = Invoke-WebRequest -Uri "$baseUrl/metrics" -UseBasicParsing
 if ($metrics.StatusCode -ne 200) { throw "Metrics endpoint not responding" }
 Write-Host "Metrics endpoint OK"
 

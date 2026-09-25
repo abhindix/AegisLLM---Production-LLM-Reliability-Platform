@@ -82,48 +82,36 @@ def test_model_registration_uses_sql_bind_names(monkeypatch):
 
 
 def test_protected_endpoint_requires_api_key(monkeypatch):
-    original_key = main.API_KEY
-    try:
-        main.API_KEY = 'test-key'
-        monkeypatch.setattr(main, 'init_db', lambda: None)
-        monkeypatch.setattr(main, 'KafkaProducer', None)
-        with TestClient(main.app) as client:
-            response = client.post('/incidents/analyze', json={'symptoms': ['latency spike']})
-        assert response.status_code == 401
-    finally:
-        main.API_KEY = original_key
+    monkeypatch.setenv('AEGIS_API_KEY', 'test-key')
+    monkeypatch.setattr(main, 'init_db', lambda: None)
+    monkeypatch.setattr(main, 'KafkaProducer', None)
+    with TestClient(main.app) as client:
+        response = client.post('/incidents/analyze', json={'symptoms': ['latency spike']})
+    assert response.status_code == 401
 
 
 def test_protected_endpoint_requires_api_key_configuration(monkeypatch):
-    original_key = main.API_KEY
-    try:
-        main.API_KEY = ''
-        monkeypatch.setattr(main, 'init_db', lambda: None)
-        monkeypatch.setattr(main, 'KafkaProducer', None)
-        with TestClient(main.app) as client:
-            response = client.post('/incidents/analyze', json={'symptoms': ['latency spike']})
-        assert response.status_code == 503
-        assert response.json()['detail'] == 'Protected endpoints require AEGIS_API_KEY configuration'
-    finally:
-        main.API_KEY = original_key
+    monkeypatch.delenv('AEGIS_API_KEY', raising=False)
+    monkeypatch.setattr(main, 'init_db', lambda: None)
+    monkeypatch.setattr(main, 'KafkaProducer', None)
+    with TestClient(main.app) as client:
+        response = client.post('/incidents/analyze', json={'symptoms': ['latency spike']})
+    assert response.status_code == 503
+    assert response.json()['detail'] == 'Protected endpoints require AEGIS_API_KEY configuration'
 
 
 def test_protected_endpoint_accepts_valid_api_key(monkeypatch):
-    original_key = main.API_KEY
-    try:
-        main.API_KEY = 'test-key'
-        monkeypatch.setattr(main, 'init_db', lambda: None)
-        monkeypatch.setattr(main, 'KafkaProducer', None)
-        with TestClient(main.app) as client:
-            response = client.post(
-                '/incidents/analyze',
-                json={'symptoms': ['latency spike']},
-                headers={'Authorization': 'Bearer ' + main.API_KEY},
-            )
-        assert response.status_code == 200
-        assert response.json()['state'] == 'RECOMMENDATION'
-    finally:
-        main.API_KEY = original_key
+    monkeypatch.setenv('AEGIS_API_KEY', 'test-key')
+    monkeypatch.setattr(main, 'init_db', lambda: None)
+    monkeypatch.setattr(main, 'KafkaProducer', None)
+    with TestClient(main.app) as client:
+        response = client.post(
+            '/incidents/analyze',
+            json={'symptoms': ['latency spike']},
+            headers={'Authorization': 'Bearer ' + 'test-key'},
+        )
+    assert response.status_code == 200
+    assert response.json()['state'] == 'RECOMMENDATION'
 
 
 def test_credit_workflow_smoke(monkeypatch):

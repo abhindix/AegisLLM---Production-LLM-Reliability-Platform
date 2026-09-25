@@ -42,7 +42,6 @@ CANARY = Counter('aegis_canary_decisions_total','Canary decisions',['decision'])
 
 OTEL_EXPORTER_OTLP_ENDPOINT = os.getenv('OTEL_EXPORTER_OTLP_ENDPOINT', 'jaeger:4317')
 OTEL_SERVICE_NAME = os.getenv('OTEL_SERVICE_NAME', 'aegisllm-gateway')
-API_KEY = os.getenv('AEGIS_API_KEY', '').strip()
 # /metrics stays public so Prometheus can scrape the API without a separate secret bootstrap step.
 PUBLIC_PATHS = {'/', '/docs', '/openapi.json', '/redoc', '/health/live', '/health/ready', '/investor', '/investor/summary', '/metrics'}
 
@@ -82,15 +81,20 @@ def _extract_bearer_token(authorization: str | None) -> str | None:
     return token
 
 
+def _configured_api_key() -> str:
+    return os.getenv('AEGIS_API_KEY', '').strip()
+
+
 @app.middleware('http')
 async def require_api_key(request: Request, call_next):
     if _is_public_path(request.url.path):
         return await call_next(request)
-    if not API_KEY:
+    api_key = _configured_api_key()
+    if not api_key:
         return JSONResponse(status_code=503, content={'detail': 'Protected endpoints require AEGIS_API_KEY configuration'})
 
     token = _extract_bearer_token(request.headers.get('Authorization'))
-    if not token or not secrets.compare_digest(token, API_KEY):
+    if not token or not secrets.compare_digest(token, api_key):
         return JSONResponse(status_code=401, content={'detail': 'Unauthorized'})
 
     return await call_next(request)

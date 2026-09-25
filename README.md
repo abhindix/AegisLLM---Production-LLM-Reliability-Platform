@@ -62,7 +62,7 @@ Then switch `MODEL_BACKEND=vllm` and recreate the API. The vLLM service exposes 
 kubectl create secret generic postgres-auth -n aegisllm --from-literal=POSTGRES_PASSWORD='<strong-password>'
 kubectl create secret generic aegisllm-api-secrets -n aegisllm --from-literal=DATABASE_URL='postgresql+psycopg://aegis:<strong-password>@postgres:5432/aegis' --from-literal=AEGIS_API_KEY='<api-key>'
 kubectl apply -f infra/k8s/aegisllm.yaml
-helm upgrade --install aegisllm infra/helm/aegisllm -n aegisllm --create-namespace --set-string secrets.databaseUrl='postgresql+psycopg://aegis:<strong-password>@postgres:5432/aegis' --set-string secrets.apiKey='<api-key>'
+helm upgrade --install aegisllm infra/helm/aegisllm -n aegisllm --create-namespace --set-string secrets.existingSecretName=aegisllm-api-secrets
 kubectl apply -f chaos/pod-kill.yaml
 kubectl apply -f chaos/network-delay.yaml
 ```

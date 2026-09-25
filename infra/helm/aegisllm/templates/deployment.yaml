@@ -18,14 +18,14 @@ spec:
         - name: DATABASE_URL
           valueFrom:
             secretKeyRef:
-              name: {{ include "aegisllm.fullname" . }}-secrets
+              name: {{ .Values.secrets.existingSecretName }}
               key: DATABASE_URL
         - {name: REDIS_URL, value: "{{ .Values.env.REDIS_URL }}"}
         - {name: KAFKA_BOOTSTRAP, value: "{{ .Values.env.KAFKA_BOOTSTRAP }}"}
         - name: AEGIS_API_KEY
           valueFrom:
             secretKeyRef:
-              name: {{ include "aegisllm.fullname" . }}-secrets
+              name: {{ .Values.secrets.existingSecretName }}
               key: AEGIS_API_KEY
         readinessProbe: {httpGet: {path: /health/ready, port: 8080}, initialDelaySeconds: 10, periodSeconds: 10}
         livenessProbe: {httpGet: {path: /health/live, port: 8080}, initialDelaySeconds: 15, periodSeconds: 20}
