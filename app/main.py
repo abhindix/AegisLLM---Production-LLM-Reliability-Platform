@@ -43,6 +43,7 @@ CANARY = Counter('aegis_canary_decisions_total','Canary decisions',['decision'])
 OTEL_EXPORTER_OTLP_ENDPOINT = os.getenv('OTEL_EXPORTER_OTLP_ENDPOINT', 'jaeger:4317')
 OTEL_SERVICE_NAME = os.getenv('OTEL_SERVICE_NAME', 'aegisllm-gateway')
 API_KEY = os.getenv('AEGIS_API_KEY', '').strip()
+# /metrics stays public so Prometheus can scrape the API without a separate secret bootstrap step.
 PUBLIC_PATHS = {'/', '/docs', '/openapi.json', '/redoc', '/health/live', '/health/ready', '/investor', '/investor/summary', '/metrics'}
 
 app = FastAPI(title='AegisLLM Gateway', version=APP_VERSION)

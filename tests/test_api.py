@@ -94,6 +94,20 @@ def test_protected_endpoint_requires_api_key(monkeypatch):
         main.API_KEY = original_key
 
 
+def test_protected_endpoint_requires_api_key_configuration(monkeypatch):
+    original_key = main.API_KEY
+    try:
+        main.API_KEY = ''
+        monkeypatch.setattr(main, 'init_db', lambda: None)
+        monkeypatch.setattr(main, 'KafkaProducer', None)
+        with TestClient(main.app) as client:
+            response = client.post('/incidents/analyze', json={'symptoms': ['latency spike']})
+        assert response.status_code == 503
+        assert response.json()['detail'] == 'Protected endpoints require AEGIS_API_KEY configuration'
+    finally:
+        main.API_KEY = original_key
+
+
 def test_protected_endpoint_accepts_valid_api_key(monkeypatch):
     original_key = main.API_KEY
     try:

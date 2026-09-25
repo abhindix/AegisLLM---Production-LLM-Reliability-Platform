@@ -28,7 +28,7 @@ Open:
 - Grafana: http://localhost:3000 (aegisadmin / value from GRAFANA_ADMIN_PASSWORD)
 - Jaeger: http://localhost:16686
 
-Protected endpoints require a bearer token derived from `AEGIS_API_KEY`. Health, metrics, and the demo landing pages stay open for local checks.
+Protected endpoints require a bearer token derived from `AEGIS_API_KEY`. Health and the demo landing pages stay open for local checks, and `/metrics` stays open for Prometheus scraping.
 
 ## Demo the lifecycle
 
