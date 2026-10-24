@@ -1,6 +1,11 @@
 $ErrorActionPreference = "Stop"
 
-$projectRoot = "C:\Users\abhin\Desktop\AI-books\app=creation\research\aegisllm-production-platform"
+# Resolve project root relative to this script (repoRoot/scripts/phase2_vllm.ps1 -> repoRoot)
+$projectRoot = if ($env:AEGIS_PROJECT_ROOT) {
+    $env:AEGIS_PROJECT_ROOT
+} else {
+    Split-Path -Parent $PSScriptRoot
+}
 Set-Location $projectRoot
 
 $baseUrl = if ($env:AEGIS_BASE_URL) { $env:AEGIS_BASE_URL } else { "http://localhost:18080" }
