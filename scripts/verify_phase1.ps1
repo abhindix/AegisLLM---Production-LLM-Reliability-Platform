@@ -1,6 +1,11 @@
 $ErrorActionPreference = "Stop"
 
-$projectRoot = "C:\Users\abhin\Desktop\AI-books\app=creation\research\aegisllm-production-platform"
+# Resolve project root relative to this script (repoRoot/scripts/verify_phase1.ps1 -> repoRoot)
+$projectRoot = if ($env:AEGIS_PROJECT_ROOT) {
+    $env:AEGIS_PROJECT_ROOT
+} else {
+    Split-Path -Parent $PSScriptRoot
+}
 Set-Location $projectRoot
 
 $baseUrl = if ($env:AEGIS_BASE_URL) { $env:AEGIS_BASE_URL } else { "http://localhost:18080" }
@@ -32,7 +37,7 @@ Write-Host "==> Health check passed"
 $health.Content
 
 Write-Host "==> Sending chat completion request..."
-$resp = Invoke-WebRequest -Uri "$baseUrl/v1/chat/completions" -Method Post -ContentType "application/json" -Headers $authHeaders -Body '{"model":"mock-model","messages":[{"role":"user","content":"Explain KV cache in one sentence."}],"max_tokens":32}' -UseBasicParsing
+$resp = Invoke-WebRequest -Uri "$baseUrl/v1/chat/completions" -Method Post -ContentType "application/json" -Headers $authHeaders -Body '{"model":"mock-model","messages":[{"role":"user","content":"Explain what a model gateway does in one sentence."}],"max_tokens":32}' -UseBasicParsing
 $resp.Content
 
 Write-Host "==> Prometheus metrics check..."
